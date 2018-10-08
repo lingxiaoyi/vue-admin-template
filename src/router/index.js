@@ -27,11 +27,6 @@ export const constantRouterMap = [
   {
     path: '/',
     component: Layout,
-    redirect: '/east-H5'
-  },
-  {
-    path: '/',
-    component: Layout,
     redirect: '/east-H5',
     name: 'Dashboard',
     meta: { title: '仪表板', icon: 'dashboard' },
