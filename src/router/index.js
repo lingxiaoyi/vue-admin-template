@@ -48,13 +48,13 @@ export const constantRouterMap = [
       {
         path: 'index',
         name: 'Index',
-        meta: { title: '首页', icon: 'page' },
+        meta: { title: '首页', icon: 'page', name: 'indexGg' },
         component: () => import('@/views/east-h5/index')
       },
       {
         path: 'detail',
         name: 'Detail',
-        meta: { title: '详情页', icon: 'page' },
+        meta: { title: '详情页', icon: 'page', name: 'detailList' },
         component: () => import('@/views/east-h5/index')
       }
     ]
