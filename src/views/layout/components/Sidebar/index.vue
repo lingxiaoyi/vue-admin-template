@@ -20,6 +20,11 @@ import SidebarItem from './SidebarItem'
 
 export default {
   components: { SidebarItem },
+  data() {
+    return {
+      menuInfo : {}
+    }
+  },
   computed: {
     ...mapGetters([
       'sidebar'

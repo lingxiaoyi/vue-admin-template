@@ -1,13 +1,21 @@
 import request from '@/utils/request'
-import { API_URL } from '@/utils/common.config.js'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import {
+  API_URL
+} from '@/utils/common.config.js'
+import {
+  getToken,
+  setToken,
+  removeToken
+} from '@/utils/auth'
 
 const user = {
   state: {
     token: getToken(),
     name: '',
     avatar: '',
-    roles: []
+    roles: [],
+    parameter: null,
+    menuList: null
   },
 
   mutations: {
@@ -27,7 +35,9 @@ const user = {
 
   actions: {
     // 登录
-    Login({ commit }, userInfo) {
+    Login({
+      commit
+    }, userInfo) {
       userInfo.username.trim()
       return new Promise((resolve, reject) => {
         request(API_URL.login, 'post', userInfo).then(response => {
@@ -43,9 +53,14 @@ const user = {
     },
 
     // 获取用户信息
-    GetInfo({ commit, state }) {
+    GetInfo({
+      commit,
+      state
+    }) {
       return new Promise((resolve, reject) => {
-        request(API_URL.get_info, 'get', { token: state.token }).then(response => {
+        request(API_URL.get_info, 'get', {
+          token: state.token
+        }).then(response => {
           const data = response.data
           if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
             commit('SET_ROLES', data.roles)
@@ -62,9 +77,14 @@ const user = {
     },
 
     // 登出
-    LogOut({ commit, state }) {
+    LogOut({
+      commit,
+      state
+    }) {
       return new Promise((resolve, reject) => {
-        request(API_URL.logout, 'get', { token: state.token }).then(() => {
+        request(API_URL.logout, 'get', {
+          token: state.token
+        }).then(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
           removeToken()
@@ -76,11 +96,22 @@ const user = {
     },
 
     // 前端 登出
-    FedLogOut({ commit }) {
+    FedLogOut({
+      commit
+    }) {
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
         removeToken()
         resolve()
+      })
+    },
+
+    // 获取菜单信息
+    GetMenuInfo() {
+      return new Promise((resolve, reject) => {
+        request(API_URL.get_menu_info, 'get', '').then(response => {
+          resolve(response)
+        })
       })
     }
   }

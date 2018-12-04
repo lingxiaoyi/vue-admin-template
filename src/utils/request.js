@@ -70,7 +70,7 @@ service.interceptors.response.use(
   }
 )
 export default async function(url, method, data) {
-  method = method.toLowerCase()
+  method = method && method.toLowerCase()
   if (method === 'get' || method === 'delete' || method === 'head') {
     return service({
       url: url,
