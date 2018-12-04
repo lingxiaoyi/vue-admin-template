@@ -153,12 +153,20 @@ export default {
       saveEditData: [] //修改失败时 数据恢复
     };
   },
+  watch: {
+    $route: {
+      handler: function(route) {
+        console.log(route)
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapState(["parameter"])
   },
   created() {
-    this.getQidList();
-    this.searchData();
+    /*this.getQidList();
+    this.searchData();*/
   },
   mounted() {
     this.$nextTick(_ => {

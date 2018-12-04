@@ -17,6 +17,8 @@
 <script>
 import { mapGetters } from 'vuex'
 import SidebarItem from './SidebarItem'
+import request from "@/utils/request";
+import { API_URL } from "@//utils/common.config.js";
 
 export default {
   components: { SidebarItem },
@@ -34,6 +36,21 @@ export default {
     },
     isCollapse() {
       return !this.sidebar.opened
+    }
+  },
+  created(){
+    this.get_menu()
+    //this.$router.addRoutes()
+  },
+  methods: {
+    async get_menu() {
+      try {
+        let res = await request(API_URL.get_menu, 'get', {})
+        console.log(res)
+      } catch (e) {
+        console.log(e)
+      }
+
     }
   }
 }
