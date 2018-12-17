@@ -7,20 +7,29 @@
         </el-option>
       </el-select>
       <el-button @click.stop="searchData" type="success" icon="el-icon-search">搜索</el-button>
-      <el-button type="success" @click.stop="dialogFormVisible=true">广告位添加</el-button>
+      <el-button type="success" @click.stop="dialogFormVisible=true">广告位管理</el-button>
+    </div>
+    <!-- 状态 -->
+    <div class="east_h5_seatip">
+      <ul class="clear">
+        <li>状态：<span>{{ searchStatus }}</span></li>
+        <li>名称：<span>首页</span></li>
+        <li>页面：<span>首页</span></li>
+        <li>描述：<span>描述</span></li>
+      </ul>
     </div>
     <!-- 表格 -->
-    <el-table v-loading="loading" :data="tableData" style="width: 100%" border>
+    <el-table :data="tableData" style="width: 100%" v-loading="loading">
       <el-table-column prop="ggType" label="广告位描述" width="">
         <template slot-scope="scope">
-          <el-input v-model="scope.row.ggType" placeholder="请输入内容" v-if="scope.row.idEdit"></el-input>
+          <el-input v-model="scope.row.ggType" placeholder="请输入内容" v-if="scope.row.isShow"></el-input>
           <span v-else>{{scope.row.ggType}}</span>
         </template>
       </el-table-column>
       <el-table-column prop="ggType" label="来源" width="">
         <template slot-scope="scope">
           <!-- scope.$index, scope.row -->
-          <el-select v-model="scope.row.qidId" placeholder="请选择" v-if="scope.row.idEdit">
+          <el-select v-model="scope.row.qidId" placeholder="请选择" v-if="scope.row.isShow">
             <el-option v-for="item in source" :key="item.label" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
@@ -30,14 +39,14 @@
       <el-table-column prop="ggId" label="广告id" width="">
         <!-- scope.$index, scope.row -->
         <template slot-scope="scope">
-          <el-input v-model="scope.row.ggId" placeholder="请输入内容" v-if="scope.row.idEdit"></el-input>
+          <el-input v-model="scope.row.ggId" placeholder="请输入内容" v-if="scope.row.isShow"></el-input>
           <span v-else>{{scope.row.ggId}}</span>
         </template>
       </el-table-column>
       <el-table-column prop="hidden" label="是否空">
         <template slot-scope="scope">
           <!-- scope.$index, scope.row -->
-          <el-select v-model="scope.row.hidden" placeholder="请选择" v-if="scope.row.idEdit">
+          <el-select v-model="scope.row.hidden" placeholder="请选择" v-if="scope.row.isShow">
             <el-option v-for="item in isEmpty" :key="item.label" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
@@ -46,13 +55,13 @@
       </el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <div v-if="!scope.row.idEdit">
-            <el-button size="mini" @click="scope.row.idEdit = !scope.row.idEdit">编辑</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row, tableData)">删除</el-button>
+          <div v-if="!scope.row.isShow">
+            <el-button size="mini" @click="handleEdit(scope.$index, scope.row, true)">编辑</el-button>
+            <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row, true)">删除</el-button>
           </div>
           <div v-else>
-            <el-button size="mini" @click="scope.row.idEdit = !scope.row.idEdit">取消</el-button>
-            <el-button size="mini" type="primary" @click="handleEdit(scope.$index, scope.row)">完成</el-button>
+            <el-button size="mini" @click="handleEdit(scope.$index, scope.row, false)">取消</el-button>
+            <el-button size="mini" type="primary" @click="handleDelete(scope.$index, scope.row, false)">完成</el-button>
           </div>
         </template>
       </el-table-column>
@@ -78,6 +87,9 @@
         <el-button type="primary" @click="addAdvertisement">确 定</el-button>
       </div>
     </el-dialog>
+    <div class="sub_btn" @click="dataSubmit">
+      <el-button type="primary">提交</el-button>
+    </div>
   </div>
 </template>
 <script>
@@ -138,7 +150,8 @@ export default {
         id: ""
       },
       formLabelWidth: "180px", //弹窗的宽度
-      loading: true
+      saveEditData: [], //修改失败时 数据恢复
+      loading: false
     };
   },
   watch: {
@@ -153,8 +166,8 @@ export default {
     ...mapState(["activeParameter"])
   },
   created() {
-    /*this.getQidList();*/
-    this.searchData();
+    /*this.getQidList();
+    this.searchData();*/
   },
   mounted() {
     this.$nextTick(_ => {
@@ -163,6 +176,16 @@ export default {
     });
   },
   methods: {
+    dataFill(params, index) {
+      this.tableData[index].ggId = params.ggId;
+      this.tableData[index].ggType = params.ggType;
+      this.tableData[index].hidden = params.hidden;
+      this.tableData[index].id = params.id;
+      this.tableData[index].isShow = false;
+      this.tableData[index].pageId = params.pageId;
+      this.tableData[index].projectId = params.projectId;
+      this.tableData[index].qidId = params.qidId;
+    },
     dataFilter(info, type) {
       let text = null;
       if (type) {
@@ -198,45 +221,31 @@ export default {
       }
       return text;
     },
-    handleEdit(index, row) {
-      let id = row.id
-      let oldRow = row
-      let data = {
-        ggId : row.ggId
+    handleEdit(index, row, flag) {
+      console.log(index, row)
+      if (flag) {
+        row.isShow = true;
+        let JsonRow = JSON.stringify(row);
+        this.saveEditData[index] = JSON.parse(JsonRow);
+      } else {
+        let params = this.saveEditData[index];
+        this.dataFill(params, index);
       }
-      request(`${API_URL.ad}/${id}`, "put", data).then(res => {
-        row.idEdit = false;
-        this.tableData[index] = row
-      })
-      .catch(err => {
-        this.$message.error("修改信息失败");
-        this.tableData[index] = oldRow
-      });
     },
-    handleDelete(index, row, tableData) {
-      this.$confirm('此操作将永久删除该广告id, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        let id = row.id
-        let data = {
-          ggId : row.ggId
-        }
-        this.loading = true
-        request(`${API_URL.ad}/${id}`, "delete", data).then(res => {
-          this.loading = false
-          tableData.splice(index, 1);
-          row.idEdit = false;
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
+    handleDelete(index, row, flag) {
+      if (flag) {
+        console.log("删除");
+      } else {
+        request(API_URL.update_ggid, "post", row)
+          .then(res => {
+            row.isShow = false;
+          })
+          .catch(err => {
+            let params = this.saveEditData[index];
+            this.dataFill(params, index);
+            this.$message.error("修改信息失败");
           });
-        }).catch(err => {
-          this.loading = false
-          this.$message.error("删除失败,请重试");
-        });
-      })
+      }
     },
     addAdvertisement() {
       if (!this.form.id) {
@@ -247,19 +256,20 @@ export default {
         return;
       }
       let params = {
-        qidId: this.activeParameter.qidId,
-        projectId: this.activeParameter.projectId,
-        pageId: this.activeParameter.id,
+        qidId: this.tableData[0].qidId,
+        projectId: this.parameter.projectId,
+        pageId: this.parameter.id,
         ggId: this.form.id
       };
-      request(API_URL.ad, 'post', params).then(res => {
-        this.tableData.push(res)
-        this.dialogFormVisible = false
-        this.form.id = ''
-      }).catch(err => {
-        this.form.id = ''
-        this.$message.error('添加失败 请重新添加')
-      })
+      request(API_URL.add_ggid, "post", params)
+        .then(res => {
+          this.searchData();
+          this.dialogFormVisible = false;
+          this.form.id = '';
+        })
+        .catch(err => {
+          this.$message.error("添加失败 请重新添加");
+        });
     },
     async searchData() {
       if (this.searVal === '') {
@@ -272,16 +282,16 @@ export default {
           qid: this.searVal
         }
         let qid = await request(API_URL.qid, 'get', data)
-        this.activeParameter.qidId = qid[0].id
         let params = {
           projectId: this.activeParameter.projectId,
-          qidId: this.activeParameter.qidId,
+          qidId: qid[0].id,
           pageId: this.activeParameter.id
         }
+
         let dataList = await request(API_URL.ad, 'get', params)
         if (dataList && dataList.length > 0) {
           this.tableData = dataList.map(item => {
-            item.idEdit = false  //对应的行是否正在编辑
+            item.isShow = false
             return item
           })
           this.searchStatus = '查询成功'
@@ -293,9 +303,9 @@ export default {
         this.loading = false
       } catch (err) {
         this.loading = false
-        this.$message.error("查询失败,请重试");
+        this.searchStatus = "查询失败";
         this.tableData = [];
-        console.log(err)
+        return err;
       }
     },
     async getQidList() {
@@ -378,9 +388,7 @@ export default {
     margin-left: 0px;
   }
 }
-.east_h5_ht{
-  margin-bottom:20px;
-}
+
 .east_h5_seatip {
   margin: 20px 0 20px 0;
   border-top: 1px solid #eee;

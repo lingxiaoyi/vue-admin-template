@@ -1,7 +1,5 @@
 import request from '@/utils/request'
-import {
-  API_URL
-} from '@/utils/common.config.js'
+import { API_URL } from '@/utils/common.config.js'
 import {
   getToken,
   setToken,
@@ -109,7 +107,7 @@ const user = {
     // 获取菜单信息
     GetMenuInfo() {
       return new Promise((resolve, reject) => {
-        request(API_URL.get_menu_info, 'get', '').then(response => {
+        request(API_URL.get_menu, 'get', '').then(response => {
           resolve(response)
         })
       })

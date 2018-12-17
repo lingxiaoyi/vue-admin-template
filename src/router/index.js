@@ -37,46 +37,19 @@ export const constantRouterMap = [
       component: () => import('@/views/dashboard/index')
     }]
   },
-
-  {
-    path: '/east-H5',
-    component: Layout,
-    redirect: '/east-H5/index',
-    name: 'EastH5',
-    meta: { title: '东方体育H5', icon: 'project' },
-    children: [
-      {
-        path: 'index',
-        name: 'eastH5Index',
-        meta: { title: '首页', icon: 'page', name: 'indexGg' },
-        component: () => import('@/views/east-h5/index')
-      },
-      {
-        path: 'detail',
-        name: 'eastH5Detail',
-        meta: { title: '详情页', icon: 'page', name: 'detailList' },
-        component: () => import('@/views/east-h5/index')
-      }
-    ]
-  },
   {
     path: '/example',
     component: Layout,
-    redirect: '/example/table',
+    redirect: '/example/qid',
     name: 'Example',
     meta: { title: 'Example', icon: 'example' },
+    alwaysShow: false,
     children: [
       {
-        path: 'table',
-        name: 'Table',
+        path: 'qid',
+        name: 'Qidlist',
         component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table' }
-      },
-      {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree' }
+        meta: { title: '渠道管理', icon: 'table', name: 'Qidlist' }
       }
     ]
   },
@@ -160,9 +133,7 @@ export const constantRouterMap = [
         meta: { title: '猫扑体育H5', icon: 'link' }
       }
     ]
-  },
-
-  { path: '*', redirect: '/404', hidden: true }
+  }
 ]
 
 export default new Router({
@@ -170,3 +141,28 @@ export default new Router({
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRouterMap
 })
+
+export const asyncRouterMap = [
+  {
+    path: '/east-H5',
+    component: Layout,
+    redirect: '/east-H5/index',
+    name: 'EastH5',
+    meta: { title: '东方体育H5', icon: 'project' },
+    children: [
+    /*{
+      path: 'index',
+      name: 'eastH5Index',
+      meta: { title: '首页', icon: 'page', name: 'indexGg' },
+      component: () => import('@/views/east-h5/index')
+    },
+    {
+      path: 'detail',
+      name: 'eastH5Detail',
+      meta: { title: '详情页', icon: 'page', name: 'detailList' },
+      component: () => import('@/views/east-h5/index')
+    }*/
+    ]
+  },
+  { path: '*', redirect: '/404', hidden: true }
+]
