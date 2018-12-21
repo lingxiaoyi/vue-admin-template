@@ -80,6 +80,13 @@ const permission = {
                 meta: { title: `${item.pageType}`, icon: 'page', name: `${item.name}` },
                 component: () => import('@/views/east-h5/index')
               })
+            } else if (item.name === 'indexGGAddThree') {
+              routes.push({
+                path: 'indexGGAddThree',
+                name: 'indexGGAddThree',
+                meta: { title: `${item.pageType}`, icon: 'page', name: `${item.name}` },
+                component: () => import('@/views/east-h5/index')
+              })
             }
           })
           asyncRouterMap[0].children = routes

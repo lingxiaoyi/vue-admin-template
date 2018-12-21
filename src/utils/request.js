@@ -30,7 +30,7 @@ service.interceptors.response.use(
     /**
      * code为非20000是抛错 可结合自己业务进行修改
      */
-    const res = response.data
+    // const res = response.data
     return response.data
     /*if (res.code !== '200') {
       Message({
@@ -61,11 +61,10 @@ service.interceptors.response.use(
     }*/
   },
   error => {
-    console.log('err' + error) // for debug
+    console.log(error) // for debug
     Message({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
+      message: error.response.data.error,
+      type: 'error'
     })
     return Promise.reject(error)
   }

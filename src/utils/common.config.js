@@ -5,7 +5,8 @@ if (process.env.NODE_ENV) { // 正式环境的
   baseUrl = 'https://msports.eastday.com'
 } else { // 测试环境
   // baseUrl = 'https://easy-mock.com/mock/5baf6bef8bea6f548f168766/vue-admin'
-  baseUrl = '//172.18.254.39:7001/api/v1'
+  ////172.18.254.39:7001
+  baseUrl = '//127.0.0.1:7001/api/v1'
 }
 moduleExports.API_URL = {
   login: `${baseUrl}/user/login`, // post登陆

@@ -2,8 +2,8 @@
   <div class="east_main_home">
     <!-- 搜索 -->
     <div class="east_h5_ht">
-      <el-select v-model="searVal" filterable placeholder="请选择渠道号" name="search" :default-first-option="true">
-        <el-option v-for="item in qidList" :key="item.value" :label="item.label" :value="item.value">
+      <el-select v-model="searVal" filterable placeholder="请选择渠道号" name="search" :default-first-option="true" >
+        <el-option v-for="item in qidList" :key="item.id" :label="item.qid" :value="item.qid">
         </el-option>
       </el-select>
       <el-button @click.stop="searchData" type="success" icon="el-icon-search">搜索</el-button>
@@ -11,10 +11,10 @@
     </div>
     <!-- 表格 -->
     <el-table v-loading="loading" :data="tableData" style="width: 100%" border>
-      <el-table-column prop="ggType" label="广告位描述" width="">
+      <el-table-column prop="des" label="广告位描述" width="">
         <template slot-scope="scope">
-          <el-input v-model="scope.row.ggType" placeholder="请输入内容" v-if="scope.row.idEdit"></el-input>
-          <span v-else>{{scope.row.ggType}}</span>
+          <el-input v-model="scope.row.des" placeholder="请输入内容" v-if="scope.row.idEdit"></el-input>
+          <span v-else>{{scope.row.des}}</span>
         </template>
       </el-table-column>
       <el-table-column prop="ggType" label="来源" width="">
@@ -51,7 +51,7 @@
             <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row, tableData)">删除</el-button>
           </div>
           <div v-else>
-            <el-button size="mini" @click="scope.row.idEdit = !scope.row.idEdit">取消</el-button>
+            <el-button size="mini" @click="handleEditCancel(scope.$index, scope.row)">取消</el-button>
             <el-button size="mini" type="primary" @click="handleEdit(scope.$index, scope.row)">完成</el-button>
           </div>
         </template>
@@ -61,10 +61,10 @@
     <el-dialog title="广告位添加" :visible.sync="dialogFormVisible">
       <el-form :model="form">
         <el-form-item label="广告位名称" :label-width="formLabelWidth">
-          <el-input v-model="form.name" autocomplete="off"></el-input>
+          <el-input v-model="form.des" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item label="广告位代码(唯一的)" :label-width="formLabelWidth">
-          <el-input v-model="form.id" autocomplete="off"></el-input>
+          <el-input v-model="form.id" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item label="是否启用" :label-width="formLabelWidth">
           <el-select v-model="form.isEnable">
@@ -91,7 +91,6 @@ export default {
     return {
       qidList: [], //渠道号列表
       searVal: "null", //搜索框val 默认null
-      searchStatus: "查询成功",
       source: [
         //广告来源
         {
@@ -131,9 +130,10 @@ export default {
         }
       ],
       tableData: [], // 表格渲染
+      oldTableData: [], //老表格
       dialogFormVisible: false, //广告添加弹窗
       form: {
-        name: "",
+        des: "",
         isEnable: "0",
         id: ""
       },
@@ -142,25 +142,26 @@ export default {
     };
   },
   watch: {
-    $route: {
-      handler: function(route) {
-        console.log(route)
-      },
-      immediate: true
+    '$route' (to, from) {
+      this.getQidList();
+      this.searchData();
+    },
+    searVal:function(value){
+      this.searchData();
     }
   },
   computed: {
     ...mapState(["activeParameter"])
   },
   created() {
-    /*this.getQidList();*/
+    this.getQidList();
     this.searchData();
   },
   mounted() {
-    this.$nextTick(_ => {
+    /*this.$nextTick(_ => {
       let dom = document.querySelector("input[name=search]");
       dom.addEventListener("input", this.searDataChange(dom));
-    });
+    });*/
   },
   methods: {
     dataFilter(info, type) {
@@ -200,17 +201,23 @@ export default {
     },
     handleEdit(index, row) {
       let id = row.id
-      let oldRow = row
       let data = {
-        ggId : row.ggId
+        ggId : row.ggId,
+        des : row.des,
       }
-      request(`${API_URL.ad}/${id}`, "put", data).then(res => {
+      request(`${API_URL.ad}/${id}`, "put", data).then(() => {
         row.idEdit = false;
         this.tableData[index] = row
+        this.oldTableData = this.deepCopy(this.tableData)
+        this.loading = false
+        this.$message({
+          type: 'success',
+          message: '修改qid成功!'
+        });
       })
-      .catch(err => {
-        this.$message.error("修改信息失败");
-        this.tableData[index] = oldRow
+      .catch(() => {
+        this.loading = false
+        this.tableData = this.deepCopy(this.oldTableData)
       });
     },
     handleDelete(index, row, tableData) {
@@ -220,14 +227,12 @@ export default {
         type: 'warning'
       }).then(() => {
         let id = row.id
-        let data = {
-          ggId : row.ggId
-        }
         this.loading = true
-        request(`${API_URL.ad}/${id}`, "delete", data).then(res => {
+        request(`${API_URL.ad}/${id}`, "delete", {}).then(() => {
           this.loading = false
           tableData.splice(index, 1);
           row.idEdit = false;
+          this.oldTableData = this.deepCopy(this.tableData)
           this.$message({
             type: 'success',
             message: '删除成功!'
@@ -236,7 +241,13 @@ export default {
           this.loading = false
           this.$message.error("删除失败,请重试");
         });
-      })
+      }).catch((err) => {
+        console.log(err)
+      });
+    },
+    handleEditCancel(index, row) {
+      row.idEdit = false;
+      this.tableData = this.deepCopy(this.oldTableData)
     },
     addAdvertisement() {
       if (!this.form.id) {
@@ -250,19 +261,29 @@ export default {
         qidId: this.activeParameter.qidId,
         projectId: this.activeParameter.projectId,
         pageId: this.activeParameter.id,
-        ggId: this.form.id
+        ggId: this.form.id,
+        des: this.form.des,
       };
+      this.loading = true
       request(API_URL.ad, 'post', params).then(res => {
+        res.idEdit = false
         this.tableData.push(res)
+        this.oldTableData = this.deepCopy(this.tableData)
         this.dialogFormVisible = false
         this.form.id = ''
-      }).catch(err => {
+        this.loading = false
+        this.$message({
+          type: 'success',
+          message: '添加ad成功!'
+        });
+      }).catch(() => {
+        this.loading = false
         this.form.id = ''
-        this.$message.error('添加失败 请重新添加')
       })
     },
     async searchData() {
       if (this.searVal === '') {
+        this.$message.error("qid不能为空");
         return;
       }
       try {
@@ -272,22 +293,30 @@ export default {
           qid: this.searVal
         }
         let qid = await request(API_URL.qid, 'get', data)
-        this.activeParameter.qidId = qid[0].id
+        if(!qid.length){
+          this.$message.error("查询失败,无此qid存在");
+          this.loading = false
+          return;
+        } else {
+          this.activeParameter.qidId = qid[0].id
+        }
         let params = {
           projectId: this.activeParameter.projectId,
           qidId: this.activeParameter.qidId,
           pageId: this.activeParameter.id
         }
         let dataList = await request(API_URL.ad, 'get', params)
+        this.$message({
+          type: 'success',
+          message: '查询ad列表成功!'
+        });
         if (dataList && dataList.length > 0) {
           this.tableData = dataList.map(item => {
             item.idEdit = false  //对应的行是否正在编辑
             return item
           })
-          this.searchStatus = '查询成功'
-          this.saveEditData = []
+          this.oldTableData = this.deepCopy(this.tableData)
         } else {
-          this.searchStatus = '无数据'
           this.tableData = []
         }
         this.loading = false
@@ -295,58 +324,51 @@ export default {
         this.loading = false
         this.$message.error("查询失败,请重试");
         this.tableData = [];
-        console.log(err)
       }
     },
     async getQidList() {
-      let qidList = await request(API_URL.get_qid_list, "get", {
-        projectId: this.parameter.projectId
-      });
-      if (qidList.data && qidList.data.length > 0) {
-        qidList.data.forEach(item => {
-          var qidObj = {
-            value: item.qid,
-            lable: item.qid
-          };
-          this.qidList.push(qidObj);
+      try {
+        this.loading = true
+        let dataList = await request(API_URL.qid_list, "get", {
+          projectId: this.activeParameter.projectId
         });
+        this.$message({
+          type: 'success',
+          message: '查询qid列表成功!'
+        });
+        if (dataList && dataList.length > 0) {
+          this.qidList = dataList
+        } else {
+          this.qidList = []
+        }
+        this.loading = false
+      } catch (err) {
+        this.loading = false
+        this.$message.error("查询qid失败,请重试");
+        this.qidList = [];
       }
     },
-    dataSubmit() {
-      console.log("提交");
-    },
-    searDataChange(dom, time = 300) {
-      let clear = null;
-      return () => {
-        if (clear) {
-          clearTimeout(clear);
+    deepCopy(target){
+      let copyed_objs = [];//此数组解决了循环引用和相同引用的问题，它存放已经递归到的目标对象
+      function _deepCopy(target){
+        if((typeof target !== 'object')||!target){return target;}
+        for(let i= 0 ;i<copyed_objs.length;i++){
+          if(copyed_objs[i].target === target){
+            return copyed_objs[i].copyTarget;
+          }
         }
-        clear = setTimeout(_ => {
-          this.searVal = dom.value;
-        }, time);
-      };
-    },
-    querySearchAsync(queryString, cb) {
-      const restaurants = this.restaurants;
-      console.log(queryString);
-      const results = queryString
-        ? restaurants.filter(this.createStateFilter(queryString))
-        : restaurants;
-
-      clearTimeout(this.timeout);
-      this.timeout = setTimeout(() => {
-        cb(results);
-      }, 3000 * Math.random());
-    },
-    createStateFilter(queryString) {
-      return state => {
-        return (
-          state.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-        );
-      };
-    },
-    handleSelect(item) {
-      console.log(item);
+        let obj = {};
+        if(Array.isArray(target)){
+          obj = [];//处理target是数组的情况
+        }
+        copyed_objs.push({target:target,copyTarget:obj})
+        Object.keys(target).forEach(key=>{
+          if(obj[key]){ return;}
+          obj[key] = _deepCopy(target[key]);
+        });
+        return obj;
+      }
+      return _deepCopy(target);
     }
   }
 };

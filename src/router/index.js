@@ -131,6 +131,10 @@ export const constantRouterMap = [
       {
         path: 'https://msports.mop.com/',
         meta: { title: '猫扑体育H5', icon: 'link' }
+      },
+      {
+        path: 'http://gzh.suixingou.cn',
+        meta: { title: '随心购H5', icon: 'link' }
       }
     ]
   }
@@ -149,20 +153,7 @@ export const asyncRouterMap = [
     redirect: '/east-H5/index',
     name: 'EastH5',
     meta: { title: '东方体育H5', icon: 'project' },
-    children: [
-    /*{
-      path: 'index',
-      name: 'eastH5Index',
-      meta: { title: '首页', icon: 'page', name: 'indexGg' },
-      component: () => import('@/views/east-h5/index')
-    },
-    {
-      path: 'detail',
-      name: 'eastH5Detail',
-      meta: { title: '详情页', icon: 'page', name: 'detailList' },
-      component: () => import('@/views/east-h5/index')
-    }*/
-    ]
+    children: []
   },
   { path: '*', redirect: '/404', hidden: true }
 ]
