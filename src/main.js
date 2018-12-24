@@ -16,49 +16,34 @@ import user from './store/modules/user'
 // const whiteList = ['/login'] // 不重定向白名单
 router.beforeEach((to, from, next) => {
   //   NProgress.start()
-  if (store.getters.addRouters.length) {
+  if (to.path === '/login') {
     next()
-    if (to.meta.name === 'Qidlist') {
-      store.commit('getActiveParameter', 'indexGg')
-    } else {
-      store.commit('getActiveParameter', to.meta.name)
-    }
+    NProgress.done() // if current page is dashboard will not trigger  afterEach hook, so manually handle it
   } else {
-    store.dispatch('GenerateRoutes', {}).then(() => {
-      router.addRoutes(store.getters.addRouters) // 动态添加可访问路由表
+    if (store.getters.addRouters.length) {
+      next()
       if (to.meta.name === 'Qidlist') {
         store.commit('getActiveParameter', 'indexGg')
       } else {
         store.commit('getActiveParameter', to.meta.name)
       }
-      next({ ...to, replace: true }) // hack方法 确保addRoutes已完成 ,set the
-    })
+    } else {
+      store.dispatch('GenerateRoutes', {}).then((res) => {
+        router.addRoutes(store.getters.addRouters) // 动态添加可访问路由表
+        if (to.meta.name === 'Qidlist') {
+          store.commit('getActiveParameter', 'indexGg')
+        } else {
+          store.commit('getActiveParameter', to.meta.name)
+        }
+        next({ ...to, replace: true }) // hack方法 确保addRoutes已完成 ,set the
+      }).catch((err) => {
+        if (err.response.status === 401) {
+          next({path: `/login?redirect=${to.path}`, replace: true }) // 否则全部重定向到登录页
+          //NProgress.done()
+        }
+      })
+    }
   }
-  //   if (getToken()) {
-  //     if (to.path === '/login') {
-  //       next({ path: '/' })
-  //       NProgress.done() // if current page is dashboard will not trigger	afterEach hook, so manually handle it
-  //     } else {
-  //       if (store.getters.roles.length === 0) {
-  //         store.dispatch('GetInfo').then(res => { // 拉取用户信息
-  //           next()
-  //         }).catch((err) => {
-  //           store.dispatch('FedLogOut').then(() => {
-  //             ElementUI.Message.error(err || 'Verification failed, please login again')
-  //             next({ path: '/' })
-  //           })
-  //         })
-  //       } else {
-  //         next()
-  //       }
-  //     }
-  //   } else {
-  //     if (whiteList.indexOf(to.path) !== -1) {
-  //     } else {
-  //       next(`/login?redirect=${to.path}`) // 否则全部重定向到登录页
-  //       NProgress.done()
-  //     }
-  //   }
 })
 
 router.afterEach(() => {

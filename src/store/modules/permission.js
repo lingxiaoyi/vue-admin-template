@@ -53,7 +53,7 @@ const permission = {
   },
   actions: {
     GenerateRoutes({ commit, rootState }, data) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         request(API_URL.get_menu, 'get', '').then(res => {
           let menuList = saveMenuInfo(res)
           rootState.menuList = menuList
@@ -92,6 +92,8 @@ const permission = {
           asyncRouterMap[0].children = routes
           commit('SET_ROUTERS', asyncRouterMap)
           resolve(res)
+        }).catch(err =>{
+          reject(err)
         })
       })
     }

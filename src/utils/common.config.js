@@ -9,7 +9,9 @@ if (process.env.NODE_ENV) { // 正式环境的
   baseUrl = '//127.0.0.1:7001/api/v1'
 }
 moduleExports.API_URL = {
-  login: `${baseUrl}/user/login`, // post登陆
+  sign_up: `${baseUrl}/user/sign_up`, // post注册
+  sign_in: `${baseUrl}/user/sign_in`, // post登陆
+  sign_out: `${baseUrl}/user/sign_out`, // post退出登录
   get_info: `${baseUrl}/user/get_info`, // get 获取信息
   logout: `${baseUrl}/user/logout`,
   qid: `${baseUrl}/qid`,

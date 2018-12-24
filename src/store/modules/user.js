@@ -33,17 +33,16 @@ const user = {
 
   actions: {
     // 登录
-    Login({
-      commit
-    }, userInfo) {
+    Login({ commit }, userInfo) {
       userInfo.username.trim()
       return new Promise((resolve, reject) => {
-        request(API_URL.login, 'post', userInfo).then(response => {
-          console.log(response)
+        request(API_URL.sign_in, 'post', userInfo).then(response => {
+          /*console.log(response)
           const data = response.data
           setToken(data.token)
-          commit('SET_TOKEN', data.token)
-          resolve()
+          commit('SET_TOKEN', data.token)*/
+          console.log(response)
+          resolve(response)
         }).catch(error => {
           reject(error)
         })
